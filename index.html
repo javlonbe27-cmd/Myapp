@@ -164,7 +164,8 @@
     <center>
         <h2 class="gold-text"><i class="fas fa-heart"></i> EHSON VA REKLAMA</h2>
         <div class="glass-card">
-            <p style="font-size: 14px; font-style: italic;">"Siz ehson qilgan narsaning o'rnini U Zot (Alloh) to'ldirur."</p>
+            <p style="font-size: 14px; font-style: italic;">"Siz ehson qilgan narsaning o'rnini U Zot (Alloh) to'ldirur Siz qilgan ehsoningiz qiynalayotgan oilalarga yetkaziladi.
+Har bir yaxshiligingiz kimningdir qalbiga umid, dasturxoniga baraka bo‘lib boradi. 💖"</p>
             
             <div style="margin-top: 20px; text-align: left;">
                 <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px dashed var(--gold);">
@@ -184,8 +185,8 @@
                 </div>
             </div>
 
-            <button class="btn-main" style="margin-top: 20px; background: #e67e22; color: white;" onclick="tg.showAlert('Botga reklama bering va savobga sherik bo\'ling!\n\n50% - Ehson savatiga\n50% - Bot rivoji uchun\n\nMurojaat: @javl0nbe : ehson guruhi @ramazon_ehsonlari')">
-                <i class="fas fa-ad"></i> REKLAMA BERING
+            <button class="btn-main" style="margin-top: 20px; background: #e67e22; color: white;" onclick="tg.showAlert('Botga reklama bering va savobga sherik bo\'ling!\n\n50% - Ehson savatiga\n50% - Bot rivoji uchun\n\nMurojaat: https://t.me/Javl0nbe : ehson guruhi💗 https://t.me/ramazon_ehsonlari')">
+                <i class="fas fa-ad"></i> REKLAMA BERING💞
             </button>
         </div>
     </center>
@@ -223,7 +224,7 @@
         let last = localStorage.getItem('lastClick');
         let now = Date.now();
         if(last && (now - last < 86400000)) {
-            tg.showAlert("Kuniga faqat bir marta belgilash mumkin!");
+            tg.showAlert("Kuniga faqat bir marta belgilash mumkin☺️!");
             return;
         }
         localStorage.setItem('lastClick', now);
@@ -297,7 +298,7 @@
 
     function copy(t) {
         navigator.clipboard.writeText(t);
-        tg.showAlert("Karta raqami nusxalandi!");
+        tg.showAlert("Karta raqami nusxalandi😇!");
     }
 
     window.onload = startTimer;
