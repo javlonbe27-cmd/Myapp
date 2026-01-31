@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ramazon Muborak Pro</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --gold: #D4AF37; --light-gold: #f1d592; --dark: #020a02; --glass: rgba(255, 255, 255, 0.07); }
+        
+        body { 
+            background: var(--dark); color: white; font-family: 'Poppins', sans-serif; 
+            margin: 0; padding: 0; overflow: hidden; -webkit-tap-highlight-color: transparent; 
+        }
+
+        /* ANIMATSIYALI FON */
+        .night-sky {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 100%, #0a2e0a 0%, #020a02 100%);
+            z-index: -2;
+        }
+        .star {
+            position: absolute; background: white; border-radius: 50%;
+            opacity: 0.5; animation: twinkle var(--duration) infinite;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        .shooting-star {
+            position: absolute; top: 0; left: 50%; width: 2px; height: 100px;
+            background: linear-gradient(to bottom, rgba(212,175,55,1), transparent);
+            animation: shoot 5s linear infinite; opacity: 0;
+        }
+        @keyframes shoot { 0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 0; } 10% { opacity: 1; } 30% { transform: translateX(-500px) translateY(500px) rotate(-45deg); opacity: 0; } 100% { opacity: 0; } }
+
+        /* SAHIFALAR */
+        .page { display: none; height: calc(100vh - 90px); overflow-y: auto; padding: 25px; box-sizing: border-box; padding-bottom: 100px; }
+        .active-page { display: block; animation: slideIn 0.5s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* DIZAYN ELEMENTLARI */
+        .glass-card { 
+            background: var(--glass); border: 1px solid rgba(212, 175, 55, 0.2); 
+            border-radius: 30px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(15px); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .gold-text { color: var(--gold); text-shadow: 0 0 10px rgba(212,175,55,0.3); }
+        .btn-main { 
+            background: linear-gradient(135deg, #b8860b, var(--gold)); border: none; padding: 18px; 
+            border-radius: 20px; color: black; font-weight: 800; width: 100%; cursor: pointer; 
+            transition: 0.3s; margin: 10px 0; font-size: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .btn-main:active { transform: scale(0.95); }
+
+        /* DUOLAR STILI */
+        .duo-card { border-left: 4px solid var(--gold); padding: 15px; margin-bottom: 15px; background: rgba(212, 175, 55, 0.05); border-radius: 0 15px 15px 0; }
+        .duo-title { font-weight: bold; color: var(--light-gold); display: block; margin-bottom: 8px; font-size: 16px; }
+        .duo-text { font-size: 14px; line-height: 1.6; color: #eee; font-style: italic; }
+
+        /* NAVIGATSIYA */
+        .nav-bar { position: fixed; bottom: 15px; left: 15px; right: 15px; height: 70px; background: rgba(0, 0, 0, 0.85); border: 1px solid var(--gold); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; backdrop-filter: blur(10px); z-index: 2000; }
+        .nav-link { color: #666; text-align: center; text-decoration: none; font-size: 20px; transition: 0.3s; }
+        .nav-link.active { color: var(--gold); transform: translateY(-5px); }
+        .nav-link span { font-size: 10px; display: block; margin-top: 3px; font-weight: 600; }
+
+        /* CLOCK */
+        .big-clock { font-size: 50px; font-weight: 900; margin: 10px 0; font-family: 'Courier New', monospace; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="night-sky" id="stars-bg"></div>
+<div class="shooting-star"></div>
+
+<div id="home" class="page active-page">
+    <center>
+        <div style="font-size: 80px; color: var(--gold); filter: drop-shadow(0 0 20px var(--gold));"><i class="fas fa-mosque"></i></div>
+        <h1 class="gold-text" style="letter-spacing: 5px; margin: 10px 0;">RAMAZON 2026</h1>
+        
+        <div class="glass-card">
+            <div id="clock" class="big-clock gold-text">00:00:00</div>
+            <p id="date" style="opacity:0.8;"></p>
+        </div>
+
+        <div class="glass-card">
+            <h3 id="r-title"><i class="fas fa-check-circle"></i> Bugun ro'za tutdingizmi?</h3>
+            <div id="roza-btns" style="display:flex; gap:15px; margin-top: 15px;">
+                <button class="btn-main" style="background:#1b5e20; color:white;" onclick="checkRoza(true)">HA</button>
+                <button class="btn-main" style="background:#b71c1c; color:white;" onclick="checkRoza(false)">YO'Q</button>
+            </div>
+            <div id="timer-box" class="hidden">
+                <p style="color: #ff9800; font-size: 13px;">Keyingi imkoniyatga qoldi:</p>
+                <div id="countdown" class="gold-text" style="font-size: 28px; font-weight: bold;">00:00:00</div>
+            </div>
+        </div>
+        
+        <button class="btn-main" onclick="showTotal()"><i class="fas fa-calendar-alt"></i> TUTGAN RO'ZALARIM HISOBI</button>
+    </center>
+</div>
+
+<div id="tasbeh" class="page">
+    <center>
+        <h2 id="zikr-title" class="gold-text">Subhanalloh</h2>
+        <p id="zikr-sub" style="opacity:0.7;">Alloh barcha nuqsondan pokdir</p>
+        
+        <div style="width: 280px; height: 380px; background: #011a01; border: 6px solid var(--gold); border-radius: 60px; position: relative; margin: 20px auto; box-shadow: 0 0 40px rgba(0,0,0,0.8);">
+            <div style="width: 200px; height: 100px; background: #c5e1c5; border: 8px solid #111; border-radius: 15px; margin: 40px auto; display: flex; align-items: center; justify-content: center; font-size: 55px; color: #111; font-family: monospace; font-weight: bold;" id="t-count">0000</div>
+            <div style="width: 130px; height: 130px; background: radial-gradient(#444, #000); border: 4px solid var(--gold); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 25px; color: var(--gold); cursor: pointer; box-shadow: 0 10px 0 #222;" onclick="tap()">ZIKR</div>
+            <div style="position: absolute; bottom: 30px; left: 30px; width: 45px; height: 45px; background: #222; border: 1px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold);" onclick="resetT()"><i class="fas fa-undo"></i></div>
+        </div>
+        <p>Jami: <span id="t-total" class="gold-text">0</span></p>
+    </center>
+</div>
+
+<div id="duolar" class="page">
+    <h2 class="gold-text" style="text-align: center;"><i class="fas fa-book-open"></i> MUBORAK DUOLAR</h2>
+    <div class="glass-card">
+        <div class="duo-card">
+            <span class="duo-title">🌙 Saharlik (Og'iz yopish)</span>
+            <span class="duo-text">Nuvaytu an asuma sovma shahri ramazona minal fajri ilal mag'ribi, xolisan lillahi ta'ala. Allohu akbar.</span>
+        </div>
+        <div class="duo-card">
+            <span class="duo-title">🌅 Iftorlik (Og'iz ochish)</span>
+            <span class="duo-text">Allohumma laka sumtu va bika amantu va 'alayka tavakkaltu va 'ala rizqika aftartu, faghfirliy ma qoddamtu va ma axxortu.</span>
+        </div>
+        <div class="duo-card">
+            <span class="duo-title">🕌 Tarovih namozi duosi</span>
+            <span class="duo-text">Subhana zil mulki val malakut. Subhana zil 'izzati val 'azomati val qudroti val jabarut. Subhanal malikil hayyillaziy la yanamu va la yamut.</span>
+        </div>
+        <div class="duo-card">
+            <span class="duo-title">✨ Qadr kechasi duosi</span>
+            <span class="duo-text">Allohumma innaka 'afuvvun tuhibbul 'afva fa'fu 'anniy.</span>
+        </div>
+        <div class="duo-card">
+            <span class="duo-title">🤲 Ota-ona uchun duo</span>
+            <span class="duo-text">Robbir hamhuma kama robbayani sog'iyro. (Robbim, ular meni kichiklikda tarbiya qilganlaridek, ularga rahm qil).</span>
+        </div>
+        <div class="duo-card">
+            <span class="duo-title">📿 Qiyinchilikda o'qiladigan duo</span>
+            <span class="duo-text">Hasbunallohu va ni'mal vakil. (Bizga Allohning O'zi kifoya, U zot eng yaxshi vakildir).</span>
+        </div>
+    </div>
+</div>
+
+<div id="savol" class="page">
+    <h2 class="gold-text" style="text-align: center;"><i class="fas fa-question-circle"></i> KO'P BERILADIGAN SAVOLLAR</h2>
+    <div class="glass-card" style="text-align: left;">
+        <details style="margin-bottom: 15px; border-bottom: 1px solid rgba(212,175,55,0.1); padding-bottom: 10px;">
+            <summary style="color: var(--gold); font-weight: bold; cursor: pointer;">Ro'zani nimalar ochadi?</summary>
+            <p style="font-size: 14px; margin-top: 10px; color: #ccc;">Qasddan yeb-ichish, jinsiy aloqa, qasddan qayt qilish va hayz ko'rish ro'zani ochadi.</p>
+        </details>
+        <details style="margin-bottom: 15px; border-bottom: 1px solid rgba(212,175,55,0.1); padding-bottom: 10px;">
+            <summary style="color: var(--gold); font-weight: bold; cursor: pointer;">Unutib yeb qo'ysa nima bo'ladi?</summary>
+            <p style="font-size: 14px; margin-top: 10px; color: #ccc;">Unutib yeb yoki ichib qo'yish ro'zani ochmaydi. Esga tushishi bilan to'xtatish kerak.</p>
+        </details>
+        <details style="margin-bottom: 15px; border-bottom: 1px solid rgba(212,175,55,0.1); padding-bottom: 10px;">
+            <summary style="color: var(--gold); font-weight: bold; cursor: pointer;">Misvok yoki tish pastasi ishlatsa bo'ladimi?</summary>
+            <p style="font-size: 14px; margin-top: 10px; color: #ccc;">Misvok ishlatish sunnat. Tish pastasini tomoqdan o'tkazib yubormaslik sharti bilan ishlatish mumkin, lekin makruh sanaladi.</p>
+        </details>
+    </div>
+</div>
+
+<div id="ehson" class="page">
+    <center>
+        <h2 class="gold-text"><i class="fas fa-heart"></i> EHSON VA REKLAMA</h2>
+        <div class="glass-card">
+            <p style="font-size: 14px; font-style: italic;">"Siz ehson qilgan narsaning o'rnini U Zot (Alloh) to'ldirur."</p>
+            
+            <div style="margin-top: 20px; text-align: left;">
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px dashed var(--gold);">
+                    <div style="display:flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fas fa-university"></i> <b>Hamkorbank</b></span>
+                        <i class="fas fa-copy" style="color:var(--gold)" onclick="copy('4231200071938483')"></i>
+                    </div>
+                    <code style="display:block; margin-top:5px; font-size: 16px;">4231 2000 7193 8483</code>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; border: 1px dashed var(--gold);">
+                    <div style="display:flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fas fa-wallet"></i> <b>Uzumbank</b></span>
+                        <i class="fas fa-copy" style="color:var(--gold)" onclick="copy('4916990334577746')"></i>
+                    </div>
+                    <code style="display:block; margin-top:5px; font-size: 16px;">4916 9903 3457 7746</code>
+                </div>
+            </div>
+
+            <button class="btn-main" style="margin-top: 20px; background: #e67e22; color: white;" onclick="tg.showAlert('Botga reklama bering va savobga sherik bo\'ling!\n\n50% - Ehson savatiga\n50% - Bot rivoji uchun\n\nMurojaat: @admin_user')">
+                <i class="fas fa-ad"></i> REKLAMA BERING
+            </button>
+        </div>
+    </center>
+</div>
+
+<div class="nav-bar">
+    <a href="#" class="nav-link active" onclick="sh('home',this)"><i class="fas fa-home"></i><span>Asosiy</span></a>
+    <a href="#" class="nav-link" onclick="sh('tasbeh',this)"><i class="fas fa-beads"></i><span>Tasbeh</span></a>
+    <a href="#" class="nav-link" onclick="sh('duolar',this)"><i class="fas fa-pray"></i><span>Duolar</span></a>
+    <a href="#" class="nav-link" onclick="sh('savol',this)"><i class="fas fa-info-circle"></i><span>F.A.Q</span></a>
+    <a href="#" class="nav-link" onclick="sh('ehson',this)"><i class="fas fa-heart"></i><span>Ehson</span></a>
+</div>
+
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // YULDUZLAR YARATISH
+    const bg = document.getElementById('stars-bg');
+    for(let i=0; i<100; i++) {
+        let star = document.createElement('div');
+        star.className = 'star';
+        let size = Math.random() * 3 + 'px';
+        star.style.width = size;
+        star.style.height = size;
+        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.setProperty('--duration', Math.random() * 3 + 2 + 's');
+        bg.appendChild(star);
+    }
+
+    // RO'ZA TIZIMI
+    let rCount = parseInt(localStorage.getItem('ramCount')) || 0;
+    function checkRoza(ha) {
+        let last = localStorage.getItem('lastClick');
+        let now = Date.now();
+        if(last && (now - last < 86400000)) {
+            tg.showAlert("Kuniga faqat bir marta belgilash mumkin!");
+            return;
+        }
+        localStorage.setItem('lastClick', now);
+        if(ha) {
+            rCount++;
+            localStorage.setItem('ramCount', rCount);
+            tg.showAlert("Alloh qabul qilsin! Mukofotingizni ziyoda qilsin. ✨");
+        } else {
+            tg.showAlert("Niyat qiling, ertaga albatta tutasiz InshaAlloh! 💪");
+        }
+        startTimer();
+    }
+
+    function startTimer() {
+        let last = localStorage.getItem('lastClick');
+        if(!last) return;
+        document.getElementById('roza-btns').classList.add('hidden');
+        document.getElementById('timer-box').classList.remove('hidden');
+        setInterval(() => {
+            let remain = 86400000 - (Date.now() - last);
+            if(remain < 0) {
+                document.getElementById('roza-btns').classList.remove('hidden');
+                document.getElementById('timer-box').classList.add('hidden');
+            } else {
+                let h = Math.floor(remain/3600000), m = Math.floor((remain%3600000)/60000), s = Math.floor((remain%60000)/1000);
+                document.getElementById('countdown').innerText = `${h}:${m}:${s}`;
+            }
+        }, 1000);
+    }
+    startTimer();
+
+    function showTotal() {
+        tg.showAlert(`Siz jami ${rCount} kun ro'za tutdingiz. Alloh ibodatlaringizni qabul qilsin!`);
+    }
+
+    // TASBEH
+    let c = 0, t = parseInt(localStorage.getItem('totalT')) || 0, s = 0;
+    document.getElementById('t-total').innerText = t;
+    function tap() {
+        c++; t++; localStorage.setItem('totalT', t);
+        document.getElementById('t-count').innerText = c.toString().padStart(4,'0');
+        document.getElementById('t-total').innerText = t;
+        tg.HapticFeedback.impactOccurred('medium');
+        if(c >= 33 && s < 3) { c = 0; s++; updateZ(); tg.HapticFeedback.notificationOccurred('success'); }
+        if(s >= 3) { /* 99 ism mantiqi */ }
+    }
+    function updateZ() {
+        const titles = ["Subhanalloh", "Alhamdulillah", "Allohu Akbar"];
+        const subs = ["Alloh pokdir", "Allohga hamd bo'lsin", "Alloh ulug'dir"];
+        document.getElementById('zikr-title').innerText = titles[s%3];
+        document.getElementById('zikr-sub').innerText = subs[s%3];
+        document.getElementById('t-count').innerText = "0000";
+    }
+    function resetT() { c = 0; s = 0; updateZ(); }
+
+    // NAVIGATSIYA
+    function sh(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(id).classList.add('active-page');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        el.classList.add('active');
+        tg.HapticFeedback.impactOccurred('light');
+    }
+
+    // VAQT VA NUSXA
+    setInterval(() => {
+        let n = new Date();
+        document.getElementById('clock').innerText = n.toLocaleTimeString('uz-UZ',{hour12:false});
+        document.getElementById('date').innerText = n.toLocaleDateString('uz-UZ',{weekday:'long',day:'numeric',month:'long'});
+    }, 1000);
+
+    function copy(t) {
+        navigator.clipboard.writeText(t);
+        tg.showAlert("Karta raqami nusxalandi!");
+    }
+
+    window.onload = startTimer;
+</script>
+</body>
+</html>
